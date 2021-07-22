@@ -3,9 +3,24 @@ openapi: 3.0.0
 info:
   title: "Employer Signup API"
   description: "Employer Online Signup Portal API"
-  version: "1.0.0"
+  info:
+    description: |
+      This is a sample Employer Signup API
+      # Introduction
+      Extended and detailed API introduction goes here
+      # Authentication
+      Only super secure authentication is authorized as the following flow states:
+      ![alt text](https://miro.medium.com/max/4800/1*ULF38OTiNJNQZ4lHQZqRwQ.png) "Auth flow"
+      # Rate Limit
+      | Path          | Amount           | Unit   |
+      | ------------- |:----------------:| ------:|
+      | Employers     | 10               | minute |
+      | Payments      | 100              |   hour |
+      | Total         | 1000             |    day |
 
-servers:
+
+  version: "1.0.0"
+x-servers:
   - url: 'https://paytient.co/'
     description: 'Production environment'
   - url: 'https://paytient-staging.paytient.co/'
