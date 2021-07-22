@@ -15,6 +15,7 @@ info:
     | Employers     | 10               | minute |
     | Payments      | 100              |   hour |
     | Total         | 1000             |    day |
+    
     # Changelog
     ## [12.1.0] - 2021-07-01
     ### Changed
