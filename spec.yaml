@@ -1579,3 +1579,18 @@ components:
     MerchantsTop10:
       type: object
       description: 'Map with top 10 merchants'
+    EmployeeFilterRequest:
+      type: object
+      properties:
+        employmentStatus:
+          $ref: '#/components/schemas/EmploymentStatus'
+        eligibilityStatus:
+          $ref: '#/components/schemas/EligibilityStatus'
+        filterDecision:
+          enum:
+            - Yes
+            - No
+        payrollScheduleId:
+          type: integer
+        keywords:
+          type: string
