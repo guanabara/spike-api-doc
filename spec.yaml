@@ -1,0 +1,1581 @@
+openapi: 3.0.0
+
+info:
+  title: "Employer Signup API"
+  description: "Employer Online Signup Portal API"
+  version: "1.0.0"
+
+servers:
+  - url: 'https://paytient.co/'
+    description: 'Production environment'
+  - url: 'https://paytient-staging.paytient.co/'
+    description: 'Staging environment'
+  - url: http://localhost:9999
+    description: 'Local environment'
+
+paths:
+  /onboarding/signup:
+    post:
+      tags:
+        - Signup
+      summary: "Initiate an Employer signup flow"
+      requestBody:
+        description: 'Employer email'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployerSignupRequest'
+      security: [ ]
+      responses:
+        201:
+          description: 'Created'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/auth/password-reset-code:
+    post:
+      tags:
+        - Auth
+      summary: "Creates a password reset code"
+      requestBody:
+        description: 'Employer signup details'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      security: [ ]
+      responses:
+        200:
+          description: 'Ok'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/auth//api/auth/password:
+    post:
+      tags:
+        - Auth
+      summary: "Updates user password"
+      requestBody:
+        description: 'Employer signup details'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPasswordRequest'
+      security: [ ]
+      responses:
+        200:
+          description: 'Ok'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/onboarding/{onboardingId}:
+    get:
+      tags:
+        - Onboarding Employer
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: onboardingId
+          schema:
+            type: integer
+          required: true
+          description: ID of onboarding to get
+      responses:
+        200:
+          description: 'Employer onboarding current state'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingEmployerState'
+        403:
+          description: 'Forbidden'
+        404:
+          description: 'Onboarding Employer Not found'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - Onboarding Employer
+      security:
+        - bearerAuth: [ ]
+      description: |
+        Allows to update OnboardingEmployer properties via PATCH operations.
+
+            Allowed operations:
+            - replace /planId
+            - replace /eligibilityDate
+            - replace /subscriptionPaymentCardId
+            - replace /subscriptionPaymentBankAccountId
+            - replace /payrollDeductionsPaymentBankAccountId
+            - replace /onboardingEmployees
+
+        This endpoint consumes *JSON patch* ([rfc-6902](https://tools.ietf.org/html/rfc6902))
+      parameters:
+        - in: path
+          name: onboardingId
+          schema:
+            type: integer
+          required: true
+          description: ID of onboarding to get
+      requestBody:
+        description: 'A JSONPatch document as defined by RFC 6902'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchBody'
+      responses:
+        200:
+          description: 'Employer onboarding patched state'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingEmployerState'
+  /api/onboarding/{onboardingId}/refresh-employees:
+    post:
+      tags:
+        - Onboarding Employer
+      summary: "Refresh employee list from Finch"
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: onboardingId
+          schema:
+            type: integer
+          required: true
+          description: ID of onboarding to get
+      responses:
+        200:
+          description: "List of all Onboarding employees retrieved from Finch"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingEmployerState"
+        403:
+          description: 'Forbidden'
+        404:
+          description: 'Onboarding Employer Not found'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/onboarding/{onboardingId}/finch-token:
+    post:
+      tags:
+        - Onboarding Employer
+      summary: Saves the onboarding employer finch token
+      parameters:
+        - in: path
+          name: onboardingId
+          schema:
+            type: integer
+          required: true
+          description: ID of onboarding to get
+      requestBody:
+        description: 'Onboarding Employer Finch Auth Token'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingFinchCode'
+      security:
+        - bearerAuth: [ ]
+      responses:
+        200:
+          description: 'Employer onboarding current state'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingEmployerState'
+        400:
+          description: 'Bad Request'
+        401:
+          description: 'Unauthorized'
+        403:
+          description: 'Forbidden'
+        404:
+          description: 'Onboarding Employer Not found'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/onboarding/{onboardingId}/finish:
+    post:
+      tags:
+        - Onboarding Employer
+      summary: Finishes the onboarding process
+      parameters:
+        - in: path
+          name: onboardingId
+          schema:
+            type: integer
+          required: true
+          description: ID of onboarding to get
+      security:
+        - bearerAuth: [ ]
+      responses:
+        204:
+          description: 'Successfully finished the onboarding process'
+        400:
+          description: 'Bad Request'
+        401:
+          description: 'Unauthorized'
+        403:
+          description: 'Forbidden'
+        404:
+          description: 'Onboarding Employer Not found'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/onboarding/{onboardingId}/payments/link-bank-account:
+    post:
+      tags:
+        - Payment methods
+      security:
+        - bearerAuth: [ ]
+      description: 'Links a bank account to be selected to pay either for subscription
+      and payroll deductions. This used Plaid. See more on how to create tokens for testing: https://plaid.com/docs/api/sandbox/'
+      parameters:
+        - in: path
+          name: onboardingId
+          schema:
+            type: integer
+          required: true
+          description: ID of onboarding to link bank account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkBankAccountRequest'
+      responses:
+        200:
+          description: Details of successfuly linked bank account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkedBankAccount'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/onboarding/{onboardingId}/payments/link-bank-account/{bankAccountId}/token:
+    get:
+      tags:
+        - Payment methods
+      security:
+        - bearerAuth: [ ]
+      description: 'Get a plaid token for unverified bank account (micro deposit).
+      This used Plaid. See more on how to create tokens for testing: https://plaid.com/docs/api/sandbox/'
+      parameters:
+        - in: path
+          name: onboardingId
+          schema:
+            type: integer
+          required: true
+          description: ID of onboarding employer
+        - in: path
+          name: bankAccountId
+          schema:
+            type: integer
+          required: true
+          description: ID of the linked bank account needing verification
+      responses:
+        200:
+          description: Details of plaid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/onboarding/{onboardingId}/payments/link-bank-account/{bankAccountId}/refresh:
+    post:
+      tags:
+        - Payment methods
+      security:
+        - bearerAuth: [ ]
+      description: 'Refresh linked bank account after token verification.
+      This used Plaid. See more on how to create tokens for testing: https://plaid.com/docs/api/sandbox/'
+      parameters:
+        - in: path
+          name: onboardingId
+          schema:
+            type: integer
+          required: true
+          description: ID of onboarding to link bank account
+        - in: path
+          name: bankAccountId
+          schema:
+            type: integer
+          required: true
+          description: ID of the linked bank account to refresh
+      responses:
+        200:
+          description: Details of linked bank account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkedBankAccount'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/onboarding/{onboardingId}/payments/link-payment-card:
+    post:
+      tags:
+        - Payment methods
+      security:
+        - bearerAuth: [ ]
+      description: 'Links a bank account to be selected to pay for subscription.
+      This used Stripe API. See more on how to use test cards: https://stripe.com/docs/testing'
+      parameters:
+        - in: path
+          name: onboardingId
+          schema:
+            type: integer
+          required: true
+          description: ID of onboarding to link bank account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkPaymentCardRequest'
+      responses:
+        200:
+          description: Details of successfuly linked payment card
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkedPaymentCard'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/employers/{employerId}/dashboard:
+    get:
+      tags:
+        - Employer Dashboard
+      security:
+        - basicAuth: [ ]
+      description: 'Generates employer dashboard.'
+      parameters:
+        - in: path
+          name: employerId
+          schema:
+            type: integer
+          required: true
+          description: ID of employer
+      responses:
+        200:
+          description: Details of the dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardResponse'
+        404:
+          description: 'Employer Not found'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/employers/{employerId}/employees/{employeeId}:
+    get:
+      tags:
+        - Employee Details
+      security:
+        - bearerAuth: [ ]
+      description: 'Retrieves employee details for given employerId and employeeId.'
+      parameters:
+        - in: path
+          name: employerId
+          schema:
+            type: integer
+          required: true
+          description: ID of employer
+        - in: path
+          name: employeeId
+          schema:
+            type: integer
+          required: true
+          description: ID of employee
+      responses:
+        200:
+          description: Details of the employee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDetails'
+        404:
+          description: 'Employer Not found'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/employers:
+    get:
+      tags:
+        - Employer details
+      security:
+        - bearerAuth: []
+      description: 'Retrieves employer details associated with the authenticated user'
+      responses:
+        200:
+          description: Employer details list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  list:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EmployerOverview"
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/employers/{employerId}:
+    get:
+      tags:
+        - Employer details
+      security:
+        - bearerAuth: [ ]
+      description: 'Retrieves details of a single Employer'
+      responses:
+        200:
+          description: Employer details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmployerDetails"
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+        tags:
+          - Employer details
+        security:
+          - bearerAuth: [ ]
+        description: |
+          Allows to update EmployerDetails properties via PATCH operations.
+
+              Allowed operations:
+              - replace /payrollDeductionsPaymentMethodId
+              - replace /subscriptionPaymentMethodId
+
+          This endpoint consumes *JSON patch* ([rfc-6902](https://tools.ietf.org/html/rfc6902))
+        parameters:
+          - in: path
+            name: employerId
+            schema:
+              type: integer
+            required: true
+            description: ID of employer to patch
+        requestBody:
+          description: 'A JSONPatch document as defined by RFC 6902'
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatchBody'
+        responses:
+          200:
+            description: 'Employer patched state'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/EmployerDetails'
+  /api/employers/{employerId}/employees:
+    get:
+      tags:
+        - Employer details
+      security:
+        - bearerAuth: [ ]
+      description: 'Retrieves Employees from a given Employer and filters.'
+      parameters:
+        - in: path
+          name: employerId
+          schema:
+            type: integer
+            required: true
+            description: ID of employer
+        - in: query
+          name: employmentStatus
+          required: false
+          schema:
+            $ref: '#/components/schemas/EmploymentStatus'
+        - in: query
+          name: eligibilityStatus
+          required: false
+          schema:
+            $ref: '#/components/schemas/EligibilityStatus'
+        - in: query
+          name: paytient
+          required: false
+          schema:
+            type: boolean
+        - in: query
+          name: payrollScheduleId
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: keywords
+          required: false
+          schema:
+            type: string
+            description: 'Comma separated list of keywords'
+      requestBody:
+        description: 'Employee filter'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeFilterRequest'
+      responses:
+        200:
+          description: List of filtered list of employees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  list:
+                    items:
+                      $ref: '#/components/schemas/BaseEmployee'
+        404:
+          description: 'Employer Not found'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/employers/{employerId}/payroll-batches:
+    get:
+      tags:
+        - Employer payroll batches
+      security:
+        - bearerAuth: [ ]
+      description: 'Retrieves employer payroll batches for given employerId.'
+      parameters:
+        - in: path
+          name: employerId
+          schema:
+            type: integer
+          required: true
+          description: ID of employer
+      responses:
+        200:
+          description: Payroll batches list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  list:
+                    items:
+                      $ref: '#/components/schemas/EmployerPayrollBatch'
+        404:
+          description: 'Employer Not found'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/employers/{employerId}/payroll-batches/{payrollBatchId}:
+    get:
+      tags:
+        - Employer payroll batches
+      security:
+        - bearerAuth: [ ]
+      description: 'Retrieves the details of a given payroll batch.'
+      parameters:
+        - in: path
+          name: employerId
+          schema:
+            type: integer
+          required: true
+          description: ID of employer
+        - in: path
+          name: payrollBatchId
+          schema:
+            type: integer
+          required: true
+          description: ID of payroll batch
+      responses:
+        200:
+          description: Payroll batch details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployerPayrollBatchDetails'
+        404:
+          description: 'Resource not found'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/employers/{employerId}/invoices:
+    get:
+      tags:
+        - Employer Invoices
+      security:
+        - bearerAuth: [ ]
+      description: 'Retrieves employer invoices for given employerId.'
+      parameters:
+        - in: path
+          name: employerId
+          schema:
+            type: integer
+          required: true
+          description: ID of employer
+      responses:
+        200:
+          description: Invoices list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  list:
+                    items:
+                      $ref: '#/components/schemas/EmployerInvoice'
+        404:
+          description: 'Employer Not found'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/onboarding/plans:
+    get:
+      tags:
+        - Employer Plans
+      security: [ ]
+      description: 'Retrieves employer portal active plans.'
+      responses:
+        200:
+          description: List of Plans
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plans'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/employers/{employerId}/add-bank-account:
+    post:
+      tags:
+        - Post-onboarding payment methods
+      security:
+        - bearerAuth: [ ]
+      description: 'Links a bank account to be selected to pay either for subscription
+          and payroll deductions. This used Plaid. See more on how to create tokens for testing: https://plaid.com/docs/api/sandbox/'
+      parameters:
+        - in: path
+          name: employerId
+          schema:
+            type: integer
+          required: true
+          description: ID of employer to link bank account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkBankAccountRequest'
+      responses:
+        200:
+          description: Details of successfuly linked payment method
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponse'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/employers/{employerId}/add-bank-account/{bankAccountId}/token:
+    get:
+      tags:
+        - Payment methods
+      security:
+        - bearerAuth: [ ]
+      description: 'Get a plaid token for unverified bank account (micro deposit).
+      This used Plaid. See more on how to create tokens for testing: https://plaid.com/docs/api/sandbox/'
+      parameters:
+        - in: path
+          name: employerId
+          schema:
+            type: integer
+          required: true
+          description: ID of employer
+        - in: path
+          name: bankAccountId
+          schema:
+            type: integer
+          required: true
+          description: ID of the bank account needing verification
+      responses:
+        200:
+          description: Details of plaid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/employers/{employerId}/add-bank-account/{bankAccountId}/refresh:
+    post:
+      tags:
+        - Payment methods
+      security:
+        - bearerAuth: [ ]
+      description: 'Refresh linked bank account after token verification.
+      This used Plaid. See more on how to create tokens for testing: https://plaid.com/docs/api/sandbox/'
+      parameters:
+        - in: path
+          name: onboardingId
+          schema:
+            type: integer
+          required: true
+          description: ID of employer
+        - in: path
+          name: bankAccountId
+          schema:
+            type: integer
+          required: true
+          description: ID of the bank account to refresh
+      responses:
+        200:
+          description: Details of item response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponse'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/employers/{employerId}/add-payment-card:
+    post:
+      tags:
+        - Post-onboarding payment methods
+      security:
+        - bearerAuth: [ ]
+      description: 'Links a payment card to be selected to pay for subscription.
+          This used Stripe API. See more on how to use test cards: https://stripe.com/docs/testing'
+      parameters:
+        - in: path
+          name: employerId
+          schema:
+            type: integer
+          required: true
+          description: ID of employer to link payment card
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkPaymentCardRequest'
+      responses:
+        200:
+          description: Details of the item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethod'
+        500:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    PatchBody:
+      type: array
+      items:
+        $ref: "#/components/schemas/PatchDocument"
+
+    PatchDocument:
+      type: object
+      description: A JSONPatch document as defined by RFC 6902
+      required:
+        - "op"
+        - "path"
+      properties:
+        op:
+          type: string
+          description: The operation to be performed
+          enum:
+            - "replace"
+        path:
+          type: string
+          description: A JSON-Pointer
+        value:
+          type: object
+          description: The value to be used within the operations
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    EmployerSignupRequest:
+      type: object
+      required:
+        - email
+        - password
+        - companyName
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          description: 'Employer domain email address'
+          example: 'employer@company.com'
+        password:
+          type: string
+          format: password
+          description: 'Employer user password'
+          example: 'Doe123456!'
+        companyName:
+          type: string
+          description: 'Employer name'
+          example: 'Company, Ltd.'
+        firstName:
+          type: string
+          description: 'Employer user first name'
+          example: 'Jonh'
+        lastName:
+          type: string
+          description: 'Employer user last name'
+          example: 'Doe'
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          description: 'Employer domain email address'
+          example: 'employer@company.com'
+    NewPasswordRequest:
+      type: object
+      required:
+        - password
+        - passwordResetCode
+      properties:
+        password:
+          type: string
+          format: password
+          description: 'Employer user password'
+          example: 'Doe123456!'
+        passwordResetCode:
+          type: string
+          description: 'Employer password reset code'
+          example: 'e21e9930-b1e9-4be3-aa25-94f6b5edeffd'
+    OnboardingFinchCode:
+      type: object
+      required:
+        - finchCode
+      properties:
+        finchCode:
+          type: string
+          description: 'Finch code for authentication'
+    PaymentMethod:
+      type: object
+      properties:
+        id:
+          type: number
+          description: 'Payment method id'
+          example: 1
+        type:
+          $ref: '#/components/schemas/PaymentMethodType'
+        name:
+          type: string
+          description: 'Bank name'
+          example: 'JPMORGAN CHASE'
+        description:
+          type: string
+          description: 'Bank description'
+        lastFour:
+          type: string
+          description: 'Payment method last 4 digits'
+          example: '0991'
+        expirationMonth:
+          type: number
+          description: 'Payment method last 4 digits'
+          example: '6'
+        expirationYear:
+          type: number
+          description: 'Payment method last 4 digits'
+          example: '2021'
+        deleted:
+          type: boolean
+          description: 'Payment method deleted tag'
+          example: 'false'
+    PaymentMethodType:
+      enum: [ CardCredit, CardDebit, CardFSA, CardHSA, CardPrepaid, CardUnknown, BankAccount ]
+    ItemResponse:
+      type: object
+      properties:
+        id:
+          type: number
+          description: 'Plaid item id'
+          example: 1
+        institutionName:
+          type: string
+          description: 'Plaid institution name'
+        defaultAccountName:
+          type: string
+          description: 'Default account name'
+        isVerified:
+          type: boolean
+          description: 'Indicates if the item is verified'
+        verificationStatus:
+          $ref: '#/components/schemas/VerificationStatus'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+    VerificationStatus:
+      enum: [ Verified, Failed, Expired, PendingAutomaticVerification, PendingManualVerification ]
+    OnboardingEmployerState:
+      type: object
+      properties:
+        onboardingEmployerId:
+          type: number
+          description: 'Onboarding employer id'
+          example: 1
+        companyName:
+          type: string
+          description: 'Employer name'
+          example: 'Company, Ltd.'
+          nullable: false
+        eligibilityDate:
+          type: string
+          format: date
+          nullable: true
+        hasFinchToken:
+          type: boolean
+          description: 'A boolean indicating weather the employer has Finch token setup or not'
+          example: true
+        linkedBankAccounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkedBankAccount'
+        linkedPaymentCards:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkedPaymentCard'
+        employeeCount:
+          type: number
+          description: 'Number of employees the company has'
+          example: 1
+        subscriptionPaymentCardId:
+          type: number
+          description: 'Linked payment card id to be used to pay subscription.'
+        subscriptionPaymentBankAccountId:
+          type: number
+          description: 'Linked bank account id to be used to pay subscription.'
+        payrollDeductionsPaymentBankAccountId:
+          type: number
+          description: 'Linked bank account id to be used to pay payroll deductions.'
+        planId:
+          type: number
+          description: 'Plan selected'
+          example: 1
+        onboardingEmployees:
+          type: array
+          items:
+            $ref: '#/components/schemas/OnboardingEmployee'
+        employeesLastUpdatedOn:
+          type: string
+          format: datetime
+          description: 'Date time of when the employees were last synced with Finch'
+          example: '2021-07-07T08:54:34'
+    OnboardingEmployee:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Employee id'
+          example: 22
+        firstName:
+          type: string
+          description: 'Employee first name'
+          example: 'John'
+        lastName:
+          type: string
+          description: 'Employee last name'
+          example: 'Doe'
+        eligible:
+          type: boolean
+          description: 'A flag indicating wether this employee is eligible to use Paytient'
+          example: true
+    LinkBankAccountRequest:
+      type: object
+      description: Request to link a bank account to be used for payroll deduction debits and subscription billing.
+      required:
+        - token
+        - defaultAccountId
+      properties:
+        token:
+          type: string
+          description: Plaid token
+        defaultAccountId:
+          type: string
+          description: Default account identifier
+    LinkedBankAccount:
+      type: object
+      description: Details for sucessfuly linked bank account
+      properties:
+        accountName:
+          type: string
+          description: Account name
+          example: Adv Plus Banking
+        institutionName:
+          type: string
+          description: Bank institution name
+          example: Bank of America
+        verified:
+          type: boolean
+          description: Tag indicating if the account is verified (has stripe token)
+          example: true
+    TokenResponse:
+      type: object
+      description: Linked account token repsonse
+      properties:
+        token:
+          type: string
+          description: Plaid token
+    LinkPaymentCardRequest:
+      type: object
+      description: Request to link a payment card to be used for subscription billing
+      required:
+        - stripeObjectId
+        - stripeObjectType
+      properties:
+        stripeObjectId:
+          type: string
+          description: Stripe object identifier
+        stripeObjectType:
+          type: string
+          description: Default account identifier
+          enum: [ Token, Source ]
+        description:
+          type: string
+          description: Payment card description
+    LinkedPaymentCard:
+      type: object
+      description: Details of a sucessfuly linked payment card
+      properties:
+        id:
+          type: number
+          example: 1
+          description: Linked payment card identifier
+        lastFourDigits:
+          type: string
+          example: 5855
+          description: Payment card last 4 digits
+        expiryDateMonth:
+          type: number
+          example: 12
+          description: Number representing the card’s expiration month.
+        expiryDateYear:
+          type: number
+          example: 2022
+          description: Number representing the card’s expiration year.
+        type:
+          type: string
+          example: Credit
+          description: Type of payment card
+    EmployerOverview:
+      type: object
+      description: Employer details
+      properties:
+        employerId:
+          type: integer
+          description: 'Employer id'
+          example: 1
+        name:
+          type: string
+          description: 'Employer name'
+          example: 'Company 123'
+    EmployerDetails:
+      type: object
+      description: Employer details
+      properties:
+        employerId:
+          type: integer
+          description: 'Employer id'
+          example: 1
+        name:
+          type: string
+          description: 'Employer name'
+          example: 'Company 123'
+        paymentMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentMethod'
+        plaidItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemResponse'
+        payrollDeductionsPaymentMethodId:
+            type: integer
+            description: 'Id of payment method used to pay payroll deductions'
+            example: 1
+        subscriptionPaymentMethodId:
+            type: integer
+            description: 'Id of payment method used to pay subscription'
+            example: 1
+    BaseEmployee:
+      type: object
+      description: A minimal overview of an Employee
+      properties:
+        employeeId:
+          type: integer
+          description: 'Employee id'
+          example: 1
+        firstName:
+            type: string
+            description: 'Employee first name'
+            example: 'John'
+        lastName:
+            type: string
+            description: 'Employee last name'
+            example: 'Doe'
+        phoneNumber:
+          type: string
+          example: '1806123456'
+        emailAddress:
+         type: string
+         example: 'john@email.co'
+        employmentStatus:
+          $ref: '#/components/schemas/EmploymentStatus'
+        eligibilityStatus:
+          $ref: '#/components/schemas/EligibilityStatus'
+        allowance:
+          type: number
+          example: '2.00'
+        payrollSchedule:
+            $ref: '#/components/schemas/EmployeePayrollSchedule'
+        isPaytient:
+          type: boolean
+    EmployeeDetails:
+      type: object
+      description: Employee details for overview and payments tabs
+      properties:
+        employeeId:
+          type: integer
+          description: 'Employee id'
+          example: 1
+        firstName:
+          type: string
+          description: 'Employee first name'
+          example: 'John'
+        lastName:
+          type: string
+          description: 'Employee last name'
+          example: 'Doe'
+        addressLine1:
+          type: string
+          example: '2nd Street'
+        addressLine2:
+          type: string
+          example: '123'
+        city:
+          type: string
+          example: 'Kansas'
+        state:
+          type: string
+          example: 'TX'
+        zipCode:
+          type: string
+          example: '99501'
+        phoneNumber:
+          type: string
+          example: '1806123456'
+        emailAddress:
+          type: string
+          example: 'john@email.co'
+        birthDate:
+          type: string
+          example: '2000-01-01'
+        department:
+          type: string
+        position:
+          type: string
+        employmentStatus:
+          type: string
+          example: 'Employed'
+        eligibilityStatus:
+          type: string
+          example: 'Eligible'
+        eligibilityStartsOn:
+          type: string
+          example: '2000-01-01'
+        eligibilityEndsOn:
+          type: string
+          example: '2000-01-01'
+        allowance:
+          type: number
+          example: '2.00'
+        payrollSchedule:
+          $ref: '#/components/schemas/EmployeePayrollSchedule'
+        finalPayDate:
+          type: string
+          example: '2000-01-01'
+        employeeStatementMinimumPayment:
+          type: number
+          example: '2.00'
+        collectedPaymentsNumber:
+          type: number
+          example: '2'
+        collectedPaymentsTotalAmount:
+          type: number
+          example: '2.00'
+        upcomingPaymentsNumber:
+          type: number
+          example: '2'
+        upcomingPaymentsTotalAmount:
+          type: number
+          example: '2.00'
+        outstandingBalance:
+          type: number
+          example: '3.00'
+        availableBalance:
+          type: number
+          example: '3.00'
+        transactionsNumber:
+          type: number
+          example: '2'
+        transactionsTotalAmount:
+          type: number
+          example: '5.00'
+        paytientEmail:
+          type: string
+          example: 'john@paytient.co'
+        paytientAccountCreatedOn:
+          type: string
+          example: '2001-01-01'
+        upcomingPayments:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/EmployeeUpcomingPayment'
+    EmployeePayrollSchedule:
+      type: object
+      description: Employee payroll schedule information
+      properties:
+        name:
+          type: string
+          description: 'Payroll schedule name'
+          example: 1
+        frequency:
+          type: string
+          description: 'Payroll schedule frequency'
+          example: 'John'
+        lastPayDate:
+          type: string
+          example: '2021-02-02'
+        nextPayDate:
+          type: string
+          example: '2021-02-02'
+        notificationDays:
+          type: number
+          example: 2
+        notificationDay:
+          type: number
+          example: 1
+        nextNotificationDate:
+          type: string
+          example: '2021-02-02'
+        minPaymentAmount:
+          type: number
+          example: 2.00
+        maxNumberOfPayments:
+          type: number
+          example: 2
+        autoSchedulePaymentsHours:
+          type: number
+          example: 2
+        status:
+          type: string
+          example: 'Active'
+    EmployeeUpcomingPayment:
+      type: object
+      description: Employee upcoming payments for payments tab
+      properties:
+        amount:
+          type: number
+          example: 2.00
+        expectedOn:
+          type: string
+          example: '2021-02-02'
+        transactionsNumber:
+          type: number
+          example: 2
+        type:
+          type: string
+          example: 'Repayment process'
+    EmployerPayrollBatch:
+      type: object
+      description: Employer payroll batches
+      properties:
+        payrollBatchId:
+          type: number
+          example: 1
+        referenceFrequency:
+          type: string
+          example: 'BiWeekly'
+        referenceLastPayDate:
+          type: string
+          example: '2021-02-02'
+        referenceNextPayDate:
+          type: string
+          example: '2021-02-02'
+        referenceNextNotificationDate:
+          type: string
+          example: '2021-02-02'
+        requestedAmount:
+          type: number
+          example: 2.00
+        expectedAmount:
+          type: number
+          example: 2.00
+        receivedAmount:
+          type: number
+          example: 2.00
+        receivedOn:
+          type: string
+          example: '2021-02-02'
+        enteredOn:
+          type: string
+          example: '2021-02-02'
+    EmployerPayrollBatchDetails:
+      type: object
+      description: Details of an employer payroll batch
+      properties:
+        payrollBatchId:
+          type: number
+          example: 1
+        date:
+          type: string
+          format: date
+          example: '2021-02-02'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployerPayrollBatchItem'
+    EmployerPayrollBatchItem:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: 'John'
+        lastName:
+          type: string
+          example: 'Doe'
+        changeNote:
+          type: string
+          example: 'Start'
+        requestedAmount:
+          type: number
+          example: 2.00
+        receivedAmount:
+          type: number
+          example: 2.00
+        previousPaymentAmount:
+          type: number
+          example: 2.00
+        currentBalanceAmount:
+          type: number
+          example: 2.00
+        lifetimeAmount:
+          type: number
+          example: 2.00
+    Plans:
+      type: array
+      items:
+        $ref: "#/components/schemas/Plan"
+    Plan:
+      type: object
+      description: Employer Portal Plan.
+      required:
+        - name
+        - description
+        - pepmFee
+        - monthlyFee
+        - monthlyAllowance
+        - benefits
+      properties:
+        id:
+          type: number
+          description: Plan Id
+        name:
+          type: string
+          example: 'Plan name'
+        description:
+          type: string
+          example: 'Plan description'
+        pepmFee:
+          type: string
+          example: '5.00'
+        monthlyFee:
+          type: string
+          example: '5.00'
+        monthlyAllowance:
+          type: string
+          example: '5.00'
+        benefits:
+          type: array
+          items:
+            type: string
+    EmploymentStatus:
+      enum: [Employed, EmployedOnLeavePaid, EmployedOnLeaveUnpaid,NotEmployed]
+    EligibilityStatus:
+      enum: [Eligible, NotEligible]
+    EmployerInvoice:
+      type: object
+      description: Employer invoices for invoices tab
+      properties:
+        amountDue:
+          type: number
+          example: 2.00
+        amountRemaining:
+          type: number
+          example: 2.00
+        amountPaid:
+          type: number
+          example: 2.00
+        year:
+          type: number
+          example: 2021
+        month:
+          type: number
+          example: 2
+        createdOn:
+          type: string
+          example: '2021-02-02'
+        invoiceId:
+          type: string
+          example: 2
+        type:
+          type: string
+          example: 'Deductions'
+        status:
+          type: string
+          example: 'Paid'
+        billingEmailAddress:
+          type: string
+          example: 'john@paytient.com'
+        invoiceUrl:
+          type: string
+          example: 'https://invoice.stripe.com/i/acct/'
+    DashboardResponse:
+      type: object
+      description: Employer dashboard details
+      properties:
+        percentCreatedPaytient:
+          type: number
+          description: 'Percentage of employees that are paytients'
+          example: 10
+        percentHaveTransaction:
+          type: number
+          description: 'Percentage of employees that have transactions'
+          example: 10
+        totalPaidToProviders:
+          type: number
+          description: 'Total paid to providers'
+          example: 10
+        totalPaidToProvidersGrouped:
+          type: array
+          description: 'Total paid to providers grouped'
+          items:
+            $ref: "#/components/schemas/TotalPaidToProviders"
+        merchantCount:
+          type: number
+          description: 'Merchant Count'
+          example: 10
+        merchantTop10:
+          type: array
+          description: 'Merchants Top 10'
+          items:
+            $ref: "#/components/schemas/MerchantsTop10"
+    TotalPaidToProviders:
+      type: object
+      description: 'Map with total paid providers'
+    MerchantsTop10:
+      type: object
+      description: 'Map with top 10 merchants'
