@@ -2,23 +2,26 @@ openapi: 3.0.0
 
 info:
   title: "Employer Signup API"
-  description: "Employer Online Signup Portal API"
-  info:
-    description: |
-      This is a sample Employer Signup API
-      # Introduction
-      Extended and detailed API introduction goes here
-      # Authentication
-      Only super secure authentication is authorized as the following flow states:
-      ![alt text](https://miro.medium.com/max/4800/1*ULF38OTiNJNQZ4lHQZqRwQ.png) "Auth flow"
-      # Rate Limit
-      | Path          | Amount           | Unit   |
-      | ------------- |:----------------:| ------:|
-      | Employers     | 10               | minute |
-      | Payments      | 100              |   hour |
-      | Total         | 1000             |    day |
-
-
+  description: |
+    This is a sample Employer Signup API
+    # Introduction
+    Extended and detailed API introduction goes here
+    # Authentication
+    Only super secure authentication is authorized as the following flow states:
+    ![alt text](https://miro.medium.com/max/4800/1*ULF38OTiNJNQZ4lHQZqRwQ.png) "Auth flow"
+    # Rate Limit
+    | Path          | Amount           | Unit   |
+    | ------------- |:----------------:| ------:|
+    | Employers     | 10               | minute |
+    | Payments      | 100              |   hour |
+    | Total         | 1000             |    day |
+    # Changelog
+    ## [12.1.0] - 2021-07-01
+    ### Changed
+    - Updated auth schema
+    ## [12.0.4] - 2020-12-20
+    ### Fixed
+    - Fixed bug while adding payment methods.
   version: "1.0.0"
 x-servers:
   - url: 'https://paytient.co/'
